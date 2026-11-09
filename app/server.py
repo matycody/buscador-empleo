@@ -154,6 +154,31 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+        if u.path == "/api/account/export":
+            if not _limite(("export", ctx.data_dir()), 5, 3600):
+                return self._json({"error": "Demasiadas descargas. Probá más tarde."}, 429)
+            import io, zipfile, time as _t
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+                cfg = config.load()
+                z.writestr("perfil-y-configuracion.json", json.dumps(cfg, ensure_ascii=False, indent=2))
+                jobs = db.list_jobs()
+                z.writestr("ofertas.json", json.dumps(jobs, ensure_ascii=False, indent=2, default=str))
+                for est in ("nueva", "interesa", "aplicada", "descartada"):
+                    z.writestr(f"ofertas-{est}.csv", db.export_csv(est).encode("utf-8-sig"))
+                folder = os.path.join(ctx.data_dir(), "cvs")
+                if os.path.isdir(folder):
+                    for f in os.listdir(folder):
+                        z.write(os.path.join(folder, f), "cvs/" + f)
+                z.writestr("LEEME.txt", "Export de tus datos. No incluye contraseñas ni claves (las credenciales guardadas nunca se exportan).\n")
+            body = buf.getvalue()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header("Content-Disposition", f'attachment; filename="mis-datos-{_t.strftime("%Y%m%d")}.zip"')
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if u.path == "/api/jobs":
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             return self._json(db.list_jobs(
