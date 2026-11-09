@@ -547,10 +547,10 @@ async function doSearch(consulta) {
         p.total += 1;
         if (x.nota) { p.fallas += 1; p.motivo ||= x.nota.replace(/^No se pudo leer: /, ""); }
       });
-      const por = Object.entries(porPortal)
-        .filter(([, p]) => p.fallas)
-        .map(([n, p]) => ` ${n}: ${p.fallas} de ${p.total} búsquedas fallaron (${p.motivo}).`)
-        .join("");
+      const caidos = Object.entries(porPortal).filter(([, p]) => p.fallas).map(([n]) => n);
+      const por = caidos.length
+        ? ` ${caidos.join(" y ")} no ${caidos.length > 1 ? "respondieron" : "respondió"} esta vez (suele ser pasajero). El detalle está en el panel de administración.`
+        : "";
       const gfalla = (r.gmail || []).find((x) => x.nota);
       const gm = gfalla ? ` ${gfalla.nota}` : r.gmail?.length ? ` ${r.gmail.length} mail(s) de alertas leídos.` : "";
       const vacias = (r.empresas || []).filter((x) => !x.encontradas);
