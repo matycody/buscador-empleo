@@ -71,8 +71,11 @@ def _step(name, estado):
             st["estado"] = estado
 
 
-def run_search():
-    """Devuelve el resultado, o None si ya hay otra búsqueda corriendo."""
+def run_search(consulta=None):
+    """Devuelve el resultado, o None si ya hay otra búsqueda corriendo.
+
+    consulta: búsqueda libre de un solo puesto (ej. "repositor"), aunque no tenga que ver con el perfil.
+    Solo consulta los portales, no toca empresas, feeds ni Gmail, y no reinicia el reloj de la búsqueda automática."""
     lock = _lock_for()
     if not lock.acquire(blocking=False):
         return None
@@ -83,6 +86,8 @@ def run_search():
         con_url = [e for e in cfg.get("empresas", []) if e.get("url")]
         portales = cfg.get("portales", {})
         busquedas = cfg.get("busquedas") or []
+        if consulta:
+            busquedas, feeds, con_url = [consulta], [], []
         pais = countries.get((cfg.get("perfil") or {}).get("pais"))
         navent = pais["navent"]
         candidatos = [("Computrabajo", "computrabajo", lambda c: computrabajo.fetch({**c, "pais_sub": pais["computrabajo"]}))]
@@ -98,7 +103,7 @@ def run_search():
                    and (key != "jooble" or config.get_secret("jooble_key", "JOOBLE_API_KEY"))]
         gm = cfg.get("gmail", {})
         gm_pass = config.get_secret("gmail_password", "GMAIL_APP_PASSWORD")
-        use_gm = bool(gm.get("enabled") and gm.get("email") and gm_pass)
+        use_gm = bool(gm.get("enabled") and gm.get("email") and gm_pass) and not consulta
         if not feeds and not con_url and not activos and not use_gm:
             return {"agregadas": 0, "errores": [], "empresas": [], "portales": [], "gmail": [],
                     "aviso": "No hay fuentes cargadas. Activá un portal, agregá feeds RSS o empresas con link en Configuración."}
@@ -138,9 +143,10 @@ def run_search():
                 _step("Gmail", "falló")
         _step("Guardando", "corriendo")
         res = db.upsert_jobs(jobs + cjobs + pjobs + gjobs)
-        res["detalles"] = enrich_computrabajo({**portales.get("computrabajo", {}), "queries": busquedas})
+        res["detalles"] = 0 if consulta else enrich_computrabajo({**portales.get("computrabajo", {}), "queries": busquedas})
         res.update({"errores": errors, "empresas": report, "portales": preport, "gmail": greport})
-        _save_state(last_search=time.time(), last_added=res["agregadas"])
+        if not consulta:
+            _save_state(last_search=time.time(), last_added=res["agregadas"])
         _step("Guardando", "listo")
         return res
     finally:

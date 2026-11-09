@@ -150,12 +150,19 @@ function checkAlerts() {
   if ("Notification" in window && Notification.permission === "granted") new Notification("Búsqueda laboral", { body: text });
 }
 
+function actualizarBusquedaLibre() {
+  const q = $("fQ").value.trim();
+  $("freeSearch").hidden = !q;
+  $("freeQ").textContent = q;
+}
+
 async function loadJobs() {
   const p = new URLSearchParams({
     q: $("fQ").value.trim(),
     location: $("fLoc").value.trim(),
     cv: state.cv,
-    min_score: $("fMin").value,
+    // si escribiste algo en el buscador, se muestran también las ofertas sin relación con tu perfil
+    min_score: $("fQ").value.trim() && $("fMin").value === "15" ? "0" : $("fMin").value,
   });
   state.why = {};
   try {
@@ -523,12 +530,13 @@ $("sfMin").addEventListener("click", () => {
   $("sfMin").textContent = f.classList.contains("min") ? "+" : "–";
 });
 
-async function doSearch() {
+async function doSearch(consulta) {
+  consulta = typeof consulta === "string" ? consulta : "";
   await runBusy($("btnSearch"), "Buscando…", async () => {
     if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
     startProgress();
     let r;
-    try { r = await api("/api/search", "POST"); } finally { stopProgress(); }
+    try { r = await api("/api/search", "POST", consulta ? { consulta } : undefined); } finally { stopProgress(); }
     if (r.aviso) {
       toast(r.aviso);
     } else {
@@ -782,7 +790,8 @@ function clearFilters() {
 /* ---------- eventos ---------- */
 function bind() {
   const reload = debounce(loadJobs);
-  $("fQ").addEventListener("input", reload);
+  $("fQ").addEventListener("input", () => { actualizarBusquedaLibre(); reload(); });
+  $("fQ").addEventListener("keydown", (e) => { if (e.key === "Enter" && $("fQ").value.trim()) { e.preventDefault(); doSearch($("fQ").value.trim()); } });
   $("fLoc").addEventListener("input", reload);
   $("fMin").addEventListener("change", loadJobs);
   $("fSrc").addEventListener("change", (e) => {
@@ -811,7 +820,8 @@ function bind() {
     const hidden = fp.classList.toggle("collapsed");
     $("btnFilters").setAttribute("aria-expanded", String(!hidden));
   });
-  $("btnSearch").addEventListener("click", doSearch);
+  $("btnSearch").addEventListener("click", () => doSearch());
+  $("btnFree").addEventListener("click", () => doSearch($("fQ").value.trim()));
   $("btnConfig").addEventListener("click", openConfig);
   $("pCopy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("pBody").value); toast("Mensaje copiado."); }

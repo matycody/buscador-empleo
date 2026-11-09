@@ -337,7 +337,8 @@ class Handler(BaseHTTPRequestHandler):
             tope = int(os.environ.get("BL_MAX_BUSQUEDAS_HORA", 6)) if PUBLIC else 0
             if tope and not _limite(("busqueda", ctx.data_dir()), tope, 3600):
                 return self._json({"error": f"Hiciste muchas búsquedas seguidas (máximo {tope} por hora). Se actualizan solas: probá en un rato."}, 429)
-            res = search.run_search()
+            consulta = " ".join(str(body.get("consulta") or "").split())[:60]
+            res = search.run_search(consulta or None)
             return self._json(res if res is not None else {"agregadas": 0, "aviso": "Ya hay una búsqueda en curso. Esperá a que termine."})
         if u.path in ("/api/jooble/key", "/api/gmail/password"):
             nombre, campo, salida = ("jooble_key", "key", "key_set") if u.path.endswith("key") else ("gmail_password", "password", "password_set")

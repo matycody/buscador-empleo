@@ -354,6 +354,14 @@ dialog::backdrop { background: rgba(21, 33, 43, 0.45); }
 .dlg-body > section[hidden] { display: none; }
 .dlg-body > .section-title:first-child { border-top: 0; padding-top: 0; }
 
+.free-search {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  margin: 0 0 10px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: var(--radius);
+  background: var(--panel-2); color: var(--ink-2); font-size: 13.5px;
+}
+.free-search[hidden] { display: none; }
+.free-search b { color: var(--ink); overflow-wrap: anywhere; }
+
 /* ---------- Aviso ---------- */
 .toast {
   position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
