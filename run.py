@@ -33,7 +33,7 @@ if __name__ == "__main__":
         sys.exit(0)
     red = "--red" in args
     nums = [a for a in args if a.isdigit()]
-    port = int(nums[0]) if nums else 8000
+    port = int(nums[0]) if nums else int(os.environ.get("PORT") or 8000)  # Render y otros hosts indican el puerto en PORT
     if red:
         ip = lan_ip()
         print("\nModo red: abrilo desde el celular (mismo WiFi) en  http://%s:%d" % (ip or "<IP de esta PC>", port))
