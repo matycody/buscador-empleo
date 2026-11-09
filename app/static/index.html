@@ -142,7 +142,7 @@
       <p class="auth-links" id="authBack" hidden><a href="#" id="auBack">Volver a ingresar</a></p>
     </form>
     <p class="hint auth-legal"><a href="/terminos.html" target="_blank" rel="noopener">Términos</a> · <a href="/privacidad.html" target="_blank" rel="noopener">Privacidad</a></p>
-    <p class="hint auth-foot" id="authFoot">Tus datos y tus CV se guardan en esta computadora, separados por cuenta. ¿Olvidaste la contraseña? En la carpeta del programa ejecutá <code>python run.py --reset-password tu@correo.com NuevaClave123</code>.</p>
+    <p class="hint auth-foot" id="authFoot">Tus datos y tus CV se guardan en tu cuenta, separados de los de otras personas. ¿Olvidaste la contraseña? Escribile a quien administra el sitio (el contacto figura en la página de Privacidad).</p>
   </div>
 </div>
 
@@ -162,7 +162,7 @@
       <p class="hint">Un .zip con tu perfil, todas tus ofertas (JSON y CSV) y tus CV. No incluye contraseñas ni claves.</p>
       <a class="btn" id="acExport" href="/api/account/export" download>Descargar mis datos</a>
       <h3 class="acc-h">Eliminar mi cuenta</h3>
-      <p class="hint">Borra tus ofertas, tu perfil y tus CV de esta computadora. No se puede deshacer.</p>
+      <p class="hint">Borra tus ofertas, tu perfil y tus CV de forma permanente. No se puede deshacer.</p>
       <div class="cols-2">
         <div class="field"><label for="acDelPass">Tu contraseña</label><input class="input" id="acDelPass" type="password" autocomplete="current-password"></div>
         <div class="field" style="align-self:end"><button type="button" class="btn btn-danger" id="acDelete">Eliminar cuenta</button></div>
@@ -201,7 +201,7 @@
     <div class="dlg-head"><h2 id="wzTitle">Creá tu perfil</h2><span class="hint" id="wzStep"></span></div>
     <div class="dlg-body">
       <section data-step="1">
-        <p class="hint">Estos datos se guardan solo en tu computadora y se usan para armar tus postulaciones.</p>
+        <p class="hint">Estos datos quedan en tu cuenta y se usan para armar tus postulaciones.</p>
         <div class="field"><label for="wNombre">Nombre y apellido</label><input class="input" id="wNombre" autocomplete="name"></div>
         <div class="cols-2">
           <div class="field"><label for="wEmail">Correo</label><input class="input" id="wEmail" type="email" autocomplete="email"></div>
@@ -227,7 +227,7 @@
           <p class="hint">Sirve para no mostrarte primero puestos senior o que piden años de experiencia.</p></div>
       </section>
       <section data-step="4" hidden>
-        <p class="hint">Subí tu CV (PDF, Word o texto, hasta 5 MB). Es opcional: queda guardado en tu PC y leemos su texto para sumar tus aptitudes al puntaje (funciona mejor con Word o PDF hechos desde un editor).</p>
+        <p class="hint">Subí tu CV (PDF, Word o texto, hasta 5 MB). Es opcional: queda guardado en tu cuenta y leemos su texto para sumar tus aptitudes al puntaje (funciona mejor con Word o PDF hechos desde un editor).</p>
         <div id="wCvs"></div>
       </section>
     </div>
@@ -261,7 +261,7 @@
 
         <section class="st-pane" data-pane="perfil">
           <h3>Mi perfil</h3>
-          <p class="hint">Estos datos salen en tus mensajes de postulación. Se guardan solo en tu computadora.</p>
+          <p class="hint">Estos datos salen en tus mensajes de postulación. Quedan guardados en tu cuenta.</p>
           <div class="cols-2">
             <div class="field"><label for="cPName">Nombre y apellido</label><input class="input" id="cPName" autocomplete="off"></div>
             <div class="field"><label for="cPPhone">Teléfono</label><input class="input" id="cPPhone" autocomplete="off" placeholder="Opcional"></div>
@@ -333,7 +333,7 @@
                 <details class="pc-more"><summary>Clave de Jooble</summary>
                   <div class="field"><input class="input" id="cJbKey" type="password" autocomplete="new-password" placeholder="Pegala acá" aria-label="Clave de la API de Jooble">
                     <p class="hint" id="jbKeyHint"></p>
-                    <p class="hint">Pedila en jooble.org/api/about dejando tu correo. Se guarda solo en tu PC.</p></div></details></div>
+                    <p class="hint">Pedila en jooble.org/api/about dejando tu correo. Queda guardada en tu cuenta.</p></div></details></div>
             </div>
             <div class="portal-card warn">
               <label class="switch"><input type="checkbox" id="cLiOn"><span class="sw"></span></label>

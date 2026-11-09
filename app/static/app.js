@@ -161,7 +161,7 @@ async function loadJobs() {
   try {
     state.jobs = await api("/api/jobs?" + p);
   } catch (e) {
-    toast("No se pudieron cargar las ofertas. ¿Sigue corriendo run.py?");
+    toast("No se pudieron cargar las ofertas. Revisá tu conexión y probá de nuevo.");
     state.jobs = [];
   }
   if (!p.get("q") && !p.get("location") && !state.cv) state.hiring = computeHiring(state.jobs);
@@ -627,7 +627,7 @@ async function refreshJoobleHint() {
   try {
     const st = await api("/api/jooble/status");
     $("jbKeyHint").textContent = st.key_set
-      ? "Hay una clave guardada en esta PC. Escribí otra solo si querés cambiarla."
+      ? "Ya hay una clave guardada. Escribí otra solo si querés cambiarla."
       : "Todavía no hay clave guardada.";
   } catch (e) {
     $("jbKeyHint").textContent = "";
@@ -638,8 +638,8 @@ async function refreshGmailHint() {
   try {
     const st = await api("/api/gmail/status");
     $("gmPassHint").textContent = st.password_set
-      ? "Hay una contraseña guardada en esta PC. Escribí otra solo si querés cambiarla."
-      : "Todavía no hay contraseña guardada. Se guarda solo en esta PC, en la carpeta data.";
+      ? "Ya hay una contraseña guardada. Escribí otra solo si querés cambiarla."
+      : "Todavía no hay contraseña guardada. Queda guardada en tu cuenta, cifrada.";
   } catch (e) {
     $("gmPassHint").textContent = "";
   }
@@ -1024,7 +1024,7 @@ async function init() {
   try {
     me = await (await fetch("/api/me")).json();
   } catch (e) {
-    toast("No se pudo conectar. ¿Sigue corriendo run.py?");
+    toast("No se pudo conectar. Revisá tu conexión y probá de nuevo.");
     return;
   }
   if (!me.user) { state.mail = !!me.mail; showAuth(me.primera); return; }
@@ -1036,7 +1036,7 @@ async function init() {
   try {
     state.cfg = await api("/api/config");
   } catch (e) {
-    toast("No se pudo leer la configuración. ¿Sigue corriendo run.py?");
+    toast("No se pudo leer la configuración. Revisá tu conexión y probá de nuevo.");
     return;
   }
   renderCvFilter();
@@ -1182,7 +1182,7 @@ $("acChange").addEventListener("click", async () => {
 });
 $("acDelete").addEventListener("click", async () => {
   if (!$("acDelPass").value) { toast("Escribí tu contraseña para confirmar."); return; }
-  if (!confirm("Se borran tu cuenta, tus ofertas y tus CV de esta computadora. ¿Seguro?")) return;
+  if (!confirm("Se borran tu cuenta, tus ofertas y tus CV de forma permanente. ¿Seguro?")) return;
   try { await api("/api/account/delete", "POST", { password: $("acDelPass").value }); location.reload(); }
   catch (e) { toast(e.message); }
 });

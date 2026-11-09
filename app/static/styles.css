@@ -348,6 +348,8 @@ dialog::backdrop { background: rgba(21, 33, 43, 0.45); }
 .dlg-foot .group { display: flex; gap: 8px; }
 .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .section-title { margin: 0; font-size: 15px; font-weight: 700; padding-top: 6px; border-top: 1px solid var(--line-soft); }
+.dlg-body > section { display: grid; gap: 14px; align-content: start; }
+.dlg-body > section[hidden] { display: none; }
 .dlg-body > .section-title:first-child { border-top: 0; padding-top: 0; }
 
 /* ---------- Aviso ---------- */
@@ -438,6 +440,9 @@ dialog::backdrop { background: rgba(21, 33, 43, 0.45); }
   dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; }
   .dlg-body { max-height: calc(100dvh - 140px); }
   .cols-2 { grid-template-columns: 1fr; }
+  .tabs { justify-content: space-between; gap: 0; }
+  .tab { padding: 9px 6px; font-size: 13.5px; flex: 0 1 auto; }
+  .tab-count { margin-left: 2px; }
   .dlg-foot .group { flex-wrap: wrap; }
 }
 @media (max-width: 420px) {
