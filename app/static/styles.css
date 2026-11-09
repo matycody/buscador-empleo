@@ -48,6 +48,8 @@ body {
 
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 button, input, select, textarea { font: inherit; color: inherit; }
+select option, select optgroup { background: var(--card); color: var(--ink); }
+select option:disabled { color: var(--ink-3); }
 button { cursor: pointer; }
 [hidden] { display: none !important; }
 
