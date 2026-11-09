@@ -22,6 +22,8 @@ Funciona para **cualquier rubro** (electricidad, salud, ventas, programación, g
 - **Recomienda un CV** (podés tener uno por rubro) y lee tu CV para sugerir palabras y puestos.
 - **Postulación asistida**: abre la oferta en una ventana lateral y te deja el mensaje listo para copiar.
 - **Seguimiento**: estado de cada postulación, resultado, fecha de seguimiento y exportación a CSV.
+- **Resumen diario por mail** (opcional) con las ofertas nuevas que superan tu puntaje, y baja con un click.
+- **Tus datos son tuyos**: desde «Mi cuenta» descargás un .zip con tu perfil, ofertas y CV.
 - **Cuentas de usuario** con datos separados por persona, asistente de registro de 4 pasos y uso desde el celular.
 
 ## Cómo levantarlo
@@ -61,9 +63,17 @@ app/
   presets.py     rubros, empresas y plantillas
   cvparse.py     lectura de CV (txt, docx, odt, pdf)
   users.py       cuentas y sesiones
+  cache.py       búsqueda compartida entre cuentas
+  digest.py      resumen diario por mail
+  health.py      estado de cada portal y alertas
   db.py          ofertas y seguimiento
   sources/       un lector por portal
   static/        interfaz
+```
+
+## Pruebas
+```
+python -m unittest discover -s tests -t .
 ```
 
 ## Fuentes y límites honestos
@@ -79,6 +89,6 @@ app/
 
 - Revisión legal de los términos y la privacidad, e inscripción de la base de datos (ver DEPLOY.md).
 - Más portales por país (hoy, fuera de Argentina, solo Computrabajo y el grupo Bumeran).
-- Avisos automáticos de ofertas nuevas.
+- Planes y pagos.
 
 Más detalle de uso por pantalla en [GUIA.md](GUIA.md).

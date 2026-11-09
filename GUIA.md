@@ -53,3 +53,7 @@ En la pestaña **Aplicadas** hay un resumen (aplicadas, esperando, para seguimie
 ## Portal Empleo y alertas por mail
 - **Portal Empleo** (portalempleo.gob.ar, Estado nacional): se lee con tus búsquedas y se quedan solo las ofertas de tus zonas. Se activa en Configuración → Portales.
 - **Indeed / LinkedIn**: no se consultan directo; creá alertas en cada portal con tu Gmail y activá «Alertas por Gmail» (hay una guía en ese panel).
+
+## Resumen diario y tus datos
+- **Resumen diario por mail**: en Configuración → *Automático y avisos* activá «Recibir un resumen diario» (necesita que el servidor tenga el envío de mails configurado). Llega una vez por día con las ofertas nuevas que superan tu puntaje mínimo; el botón de prueba te manda uno ahora. Cada mail trae un link para darte de baja.
+- **Descargar mis datos**: en *Mi cuenta* → «Descargar mis datos» obtenés un .zip con tu perfil, todas tus ofertas (JSON y un CSV por estado) y tus CV. No incluye contraseñas ni claves.

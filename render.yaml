@@ -25,3 +25,13 @@ services:
         sync: false
       - key: BREVO_SENDER_EMAIL   # remitente verificado en Brevo
         sync: false
+      - key: BL_ADMIN_EMAILS      # correos (separados por coma) que ven /admin y reciben alertas si un portal se cae
+        sync: false
+      - key: BL_CACHE_MINUTOS     # cuánto se reutiliza una búsqueda entre cuentas (por defecto 180)
+        value: "180"
+      - key: BL_DIGEST_HORA       # hora local a partir de la cual sale el resumen diario por mail
+        value: "8"
+      - key: BL_TZ_OFFSET         # huso horario respecto de UTC (Argentina: -3)
+        value: "-3"
+      - key: BL_MAX_BUSQUEDAS_HORA  # búsquedas manuales por cuenta y por hora
+        value: "6"
