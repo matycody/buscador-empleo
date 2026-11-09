@@ -89,6 +89,14 @@ class Handler(BaseHTTPRequestHandler):
         age = days * 86400 if token else 0
         return f"sid={token or ''}; HttpOnly; SameSite=Lax; Path=/; Max-Age={age}" + ("; Secure" if PUBLIC else "")
 
+    def _text(self, body, ctype="text/plain"):
+        data = body.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", ctype + "; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def _json(self, data, code=200, headers=None):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
@@ -177,18 +185,28 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/gmail/status":
             return self._json({"password_set": bool(config.get_secret("gmail_password", "GMAIL_APP_PASSWORD"))})
         # archivos estáticos
-        rel = "index.html" if u.path in ("/", "") else u.path.lstrip("/")
+        if u.path == "/robots.txt":
+            return self._text("User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin\nDisallow: /entrar\nSitemap: " + self._base_url() + "/sitemap.xml\n")
+        if u.path == "/sitemap.xml":
+            urls = "".join(f"<url><loc>{self._base_url()}{p}</loc></url>" for p in ("/", "/terminos.html", "/privacidad.html"))
+            return self._text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>", "application/xml")
+        if u.path in ("/", ""):
+            rel = "landing.html" if PUBLIC and not self.user else "index.html"  # en uso local, la app directo
+        elif u.path == "/entrar":
+            rel = "index.html"
+        else:
+            rel = u.path.lstrip("/")
         full = os.path.normpath(os.path.join(STATIC, rel))
         if not full.startswith(STATIC) or not os.path.isfile(full):
             self.send_error(404)
             return
         with open(full, "rb") as f:
             data = f.read()
-        if os.path.basename(full) in ("terminos.html", "privacidad.html"):
+        if os.path.basename(full) in ("terminos.html", "privacidad.html", "landing.html"):
             from html import escape
             datos = {"{{OPERADOR}}": os.environ.get("BL_OPERADOR", "el responsable de este servicio"),
                      "{{CONTACTO}}": os.environ.get("BL_CONTACTO", "el correo de contacto del servicio"),
-                     "{{VERSION}}": LEGAL_VERSION, "{{FECHA}}": LEGAL_FECHA}
+                     "{{VERSION}}": LEGAL_VERSION, "{{FECHA}}": LEGAL_FECHA, "{{BASE}}": self._base_url()}
             texto = data.decode("utf-8")
             for k, v in datos.items():
                 texto = texto.replace(k, escape(v))

@@ -1013,6 +1013,7 @@ async function init() {
   }
   if (!me.user) { state.mail = !!me.mail; showAuth(me.primera); return; }
   state.user = me.user;
+  if (location.pathname === "/entrar") history.replaceState(null, "", "/");
   $("auth").hidden = true;
   $("accName").textContent = (me.user.nombre || me.user.email).split(" ")[0];
   try {
@@ -1064,7 +1065,8 @@ function showAuth(primera) {
     setAuthMode("reset");
     return;
   }
-  setAuthMode(primera ? "register" : "login");
+  setAuthMode(primera || h === "#registro" ? "register" : "login");
+  if (h === "#registro") history.replaceState(null, "", location.pathname);
   if (h === "#verificado" || h === "#verificado-error") {
     history.replaceState(null, "", location.pathname);
     if (h === "#verificado") authMsg("¡Correo confirmado! Ya podés ingresar.");
