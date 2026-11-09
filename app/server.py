@@ -3,12 +3,13 @@ import json
 import mimetypes
 import os
 import re
+import signal
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from . import cache, config, ctx, cvparse, db, mailer, presets, scoring, search, users
+from . import backup, cache, config, ctx, cvparse, db, mailer, presets, scoring, search, users
 from .sources import demo
 
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
@@ -153,7 +154,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._text(f.read(), "text/html")
             from . import health
             return self._json({"cuentas": users.stats(), "cache": cache.stats(), "portales": health.snapshot(),
-                               "publico": PUBLIC, "mail": mailer.enabled(), "admins": len(health.admins())})
+                               "publico": PUBLIC, "mail": mailer.enabled(), "admins": len(health.admins()), "backup": backup.estado()})
         if u.path == "/api/me":
             return self._json({"user": self.user, "primera": not users.has_users(), "mail": mailer.enabled()})
         if u.path == "/api/cv":
@@ -423,6 +424,10 @@ def run(host="127.0.0.1", port=8000):
             import cryptography  # noqa: F401
         except ImportError:
             raise SystemExit("Hay BL_SECRET_KEY pero falta la biblioteca: ejecutá  pip install -r requirements.txt")
+    stop = threading.Event()
+    if backup.enabled():
+        n = backup.restaurar()  # carpeta vacía (hosting sin disco): vuelve todo desde la copia
+        print(f"Copia de seguridad activa: {n} archivos restaurados." if n else "Copia de seguridad activa.")
     for folder in users.all_dirs():
         try:
             with ctx.using(folder):
@@ -434,11 +439,22 @@ def run(host="127.0.0.1", port=8000):
         except Exception as e:  # la limpieza nunca debe impedir que arranque
             print("No se pudo preparar una cuenta:", e)
     cache.limpiar()
-    stop = threading.Event()
     threading.Thread(target=search.scheduler_loop, args=(stop,), daemon=True).start()
+    if backup.enabled():
+        threading.Thread(target=backup.loop, args=(stop,), daemon=True).start()
     srv = ThreadingHTTPServer((host, port), Handler)
     print(f"Buscador de empleo listo en http://{host}:{port}  (Ctrl+C para cortar)")
+    def _apagar(signum, frame):
+        # Los hostings mandan SIGTERM al reiniciar o desplegar: hay unos segundos para guardar la copia final.
+        print("\nSeñal de apagado: guardando copia final…")
+        stop.set()
+        backup.cerrar()
+        os._exit(0)
+
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGTERM, _apagar)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
         print("\nChau!")
+        backup.cerrar()

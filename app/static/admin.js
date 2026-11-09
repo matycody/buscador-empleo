@@ -8,5 +8,6 @@ fetch("/api/admin/stats").then(r=>r.json()).then(d=>{
  const ps=Object.entries(d.portales).sort((a,b)=>b[1].seguidas-a[1].seguidas);
  por.innerHTML=ps.length?ps.map(([n,p])=>`<tr><td>${esc(n)}</td><td class="${p.seguidas>=3?"mal":p.seguidas?"":"bien"}">${p.seguidas>=3?"CAÍDO ("+p.seguidas+" seguidas)":p.seguidas?"con fallas":"ok"}</td><td>${p.ok}</td><td>${p.fail}</td><td>${f(p.last_ok)}</td><td>${esc(p.last_note||"")}</td></tr>`).join(""):"<tr><td colspan=6>Todavía no hay consultas reales.</td></tr>";
  altas.innerHTML=c.altas_por_dia.map(([a,b])=>`<tr><td>${esc(a)}</td><td>${b}</td></tr>`).join("")||"<tr><td>Sin altas</td></tr>";
- srv.textContent=`Modo público: ${d.publico?"sí":"no"} · Correo (Brevo): ${d.mail?"configurado":"NO configurado"} · Admins con alertas: ${d.admins} · Caché ${d.cache.ttl_min} min · ${d.cache.busquedas.kb+d.cache.detalles.kb} KB`;
+ const bk=d.backup;
+ srv.textContent=(bk.activo?`Copia de seguridad: ${bk.ok===false?"FALLA ("+bk.error+")":bk.ultima?"ok, última "+f(bk.ultima)+" ("+bk.archivos+" archivos, cada "+bk.cada_min+" min"+(bk.cifrado?", cifrada":"")+")":"activa, esperando la primera copia"}${bk.restaurado?" · restauró "+bk.restaurado+" archivos al arrancar":""} · `:"Copia de seguridad: NO configurada · ")+`Modo público: ${d.publico?"sí":"no"} · Correo (Brevo): ${d.mail?"configurado":"NO configurado"} · Admins con alertas: ${d.admins} · Caché ${d.cache.ttl_min} min · ${d.cache.busquedas.kb+d.cache.detalles.kb} KB`;
 });

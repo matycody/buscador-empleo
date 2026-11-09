@@ -66,6 +66,7 @@ app/
   cache.py       búsqueda compartida entre cuentas
   digest.py      resumen diario por mail
   health.py      estado de cada portal y alertas
+  backup.py      copia cifrada de los datos a almacenamiento S3 (hostings sin disco)
   db.py          ofertas y seguimiento
   sources/       un lector por portal
   static/        interfaz
