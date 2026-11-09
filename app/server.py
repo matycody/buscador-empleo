@@ -267,6 +267,28 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def do_HEAD(self):
+        """Los monitores (UptimeRobot, etc.) piden HEAD: se responde igual que GET pero sin el cuerpo."""
+        real = self.wfile
+
+        class _SoloEncabezados:
+            enviado = False  # la primera escritura son los encabezados; lo que sigue es cuerpo y se descarta
+
+            def write(self, data):
+                if not self.enviado:
+                    self.enviado = True
+                    real.write(data)
+                return len(data)
+
+            def flush(self):
+                real.flush()
+
+        self.wfile = _SoloEncabezados()
+        try:
+            self.do_GET()
+        finally:
+            self.wfile = real
+
     def do_POST(self):
         u = urlparse(self.path)
         origin = self.headers.get("Origin")
