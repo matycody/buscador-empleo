@@ -7,7 +7,7 @@ Se activa con estas variables (si falta alguna, queda apagado):
   BL_BACKUP_ENDPOINT   ej: https://<cuenta>.r2.cloudflarestorage.com
   BL_BACKUP_BUCKET     nombre del bucket (privado)
   BL_BACKUP_KEY_ID / BL_BACKUP_SECRET   claves de acceso
-Opcionales: BL_BACKUP_REGION (por defecto "auto"), BL_BACKUP_PREFIX (por defecto "buscador"), BL_BACKUP_MINUTOS (por defecto 2).
+Opcionales: BL_BACKUP_REGION (por defecto "auto", que sirve para R2; con Backblaze B2 hay que poner la región del endpoint, ej. us-west-004), BL_BACKUP_PREFIX (por defecto "buscador"), BL_BACKUP_MINUTOS (por defecto 2).
 
 Si hay BL_SECRET_KEY, cada archivo se cifra antes de subirlo (el bucket nunca ve datos en claro). Sin esa variable se sube tal cual.
 No se copian la caché de búsquedas ni las estadísticas de portales (se vuelven a armar solas).

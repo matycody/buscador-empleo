@@ -33,7 +33,7 @@ Hoy el programa corre en tu computadora. Estos pasos lo dejan en un servidor con
 | `BL_CACHE_MINUTOS` | minutos que se reutiliza una búsqueda entre cuentas | 180 (público) / 10 |
 | `BL_DIGEST_HORA`, `BL_TZ_OFFSET` | hora y huso del resumen diario | 8 y -3 |
 | `BL_MAX_BUSQUEDAS_HORA` | búsquedas manuales por cuenta y hora | 6 |
-| `BL_BACKUP_ENDPOINT`, `BL_BACKUP_BUCKET`, `BL_BACKUP_KEY_ID`, `BL_BACKUP_SECRET` | copia automática a almacenamiento S3 (R2, B2…); apagada si falta alguna | — |
+| `BL_BACKUP_ENDPOINT`, `BL_BACKUP_BUCKET`, `BL_BACKUP_KEY_ID`, `BL_BACKUP_SECRET` | copia automática a almacenamiento S3 (Backblaze B2, R2…); apagada si falta alguna | — |
 | `BL_BACKUP_MINUTOS`, `BL_BACKUP_REGION`, `BL_BACKUP_PREFIX` | cada cuánto copia, región y carpeta dentro del bucket | 2, auto, buscador |
 
 ## Panel de administración
@@ -47,14 +47,23 @@ Con tu correo en `BL_ADMIN_EMAILS`, entrás con tu cuenta a `/admin`: ves cuánt
 
 Con esas dos variables, las cuentas nuevas deben confirmar el correo para ingresar, aparece «¿Olvidaste tu contraseña?» y se puede activar el resumen diario de ofertas (cada mail trae un link de baja firmado). Sin ellas, el programa funciona igual (modo local). Las cuentas creadas antes de activar los mails cuentan como confirmadas.
 
-## Gratis, para probar con pocas personas (Render gratis + copia a Cloudflare R2)
+## Gratis, para probar con pocas personas (Render gratis + copia a Backblaze B2)
 El plan gratis de Render **no tiene disco** (los datos se borran en cada reinicio) y **se duerme a los 15 minutos**. Este camino lo resuelve sin pagar:
 la app guarda una copia cifrada de `data/` en un almacenamiento gratis, la restaura sola al arrancar, y UptimeRobot evita que se duerma.
 
-**1. Cloudflare R2 (almacenamiento de las copias, 10 GB gratis)**
-1. Creá una cuenta en cloudflare.com → **R2 Object Storage** (puede pedir un método de pago para activarlo; con el uso de esta app no se cobra).
-2. **Create bucket** (por ejemplo `buscador-copias`), privado.
-3. **Manage R2 API Tokens → Create API token** con permiso *Object Read & Write* sobre ese bucket. Anotá el *Access Key ID*, el *Secret Access Key* y el endpoint (`https://<tu-cuenta>.r2.cloudflarestorage.com`).
+**1. Backblaze B2 (almacenamiento de las copias: 10 GB gratis, sin tarjeta)**
+1. Creá una cuenta en backblaze.com (solo correo y contraseña) y entrá a **B2 Cloud Storage**.
+2. **Buckets → Create a Bucket**: nombre único (por ejemplo `buscador-copias-tunombre`), **Files in Bucket are: Private**, cifrado del lado del servidor opcional. Los buckets privados son gratis.
+3. En el bucket anotá el **Endpoint** (por ejemplo `s3.us-west-004.backblazeb2.com`): de ahí sale la región (`us-west-004`).
+4. **Application Keys → Add a New Application Key**: limitala a ese bucket, con permiso de lectura y escritura. Anotá el **keyID** y la **applicationKey** (se muestra una sola vez). No sirve la «Master Application Key».
+5. Las variables para Render quedan así:
+   - `BL_BACKUP_ENDPOINT` = `https://s3.us-west-004.backblazeb2.com` (el tuyo, con `https://`)
+   - `BL_BACKUP_REGION` = `us-west-004` (**obligatorio con B2**: es la región de tu endpoint)
+   - `BL_BACKUP_BUCKET` = el nombre del bucket
+   - `BL_BACKUP_KEY_ID` = el keyID
+   - `BL_BACKUP_SECRET` = la applicationKey
+
+*(Alternativa: Cloudflare R2 da 10 GB gratis, pero pide cargar una tarjeta para activarlo. Con R2 el endpoint es `https://<cuenta>.r2.cloudflarestorage.com` y `BL_BACKUP_REGION` se deja vacío, que vale `auto`.)*
 
 **2. Render, servicio gratis**
 1. **New → Web Service** → elegí el repositorio → *Runtime: Docker* → *Instance type: Free*. No agregues disco.
@@ -62,7 +71,7 @@ la app guarda una copia cifrada de `data/` en un almacenamiento gratis, la resta
    - `BL_PUBLIC` = `1`
    - `BL_SECRET_KEY` = un texto largo y secreto que inventes. **Guardalo aparte y no lo cambies nunca**: cifra las copias y las contraseñas guardadas; si cambia, no se pueden leer.
    - `BL_BASE_URL`, `BL_OPERADOR`, `BL_CONTACTO`, `BL_ADMIN_EMAILS` (y las de Brevo cuando las tengas)
-   - `BL_BACKUP_ENDPOINT`, `BL_BACKUP_BUCKET`, `BL_BACKUP_KEY_ID`, `BL_BACKUP_SECRET` (los datos de R2). Opcional: `BL_BACKUP_MINUTOS` (por defecto 2).
+   - `BL_BACKUP_ENDPOINT`, `BL_BACKUP_REGION`, `BL_BACKUP_BUCKET`, `BL_BACKUP_KEY_ID`, `BL_BACKUP_SECRET` (los datos de B2 del paso 1). Opcional: `BL_BACKUP_MINUTOS` (por defecto 2).
 3. Deploy. En el log tiene que aparecer «Copia de seguridad activa». En `/admin` ves la fecha de la última copia.
 
 **3. UptimeRobot (que no se duerma)**
