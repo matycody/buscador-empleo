@@ -1,7 +1,15 @@
 """Puntaje 0-100 y recomendación de CV."""
+import math
 import re
 import unicodedata
 from datetime import datetime, timezone
+
+# Versión de la fórmula: si cambia, los puntajes guardados se recalculan solos al arrancar.
+VERSION = 2
+PERFIL_MAX = 78      # lo máximo que suman las palabras de tu perfil (el resto lo ponen zona, antigüedad, empresa y nivel)
+CURVA = 3.4          # qué tan rápido sube el aporte de las palabras (curva suave: nunca llega a un tope plano)
+LOC_BONUS = 8
+AGE_PTS = (6, 3, 0, -8, -15)  # hasta 3 días, hasta 10, hasta 21, hasta 45, más
 
 
 def norm(text):
@@ -20,8 +28,9 @@ def _profile_score(profile, title, desc):
             raw += w * 2
         elif k in desc:
             raw += w
-    # Con ~45% del total posible ya es una coincidencia excelente.
-    return min(100.0, raw / (total_possible * 0.45) * 100)
+    # Curva suave: las primeras palabras suman rápido, pero llegar al máximo exige acertar con casi todas
+    # (antes un 45% de las palabras ya daba el tope y la mayoría de las ofertas buenas quedaban empatadas en 100).
+    return 100.0 * (1 - math.exp(-CURVA * raw / total_possible))
 
 
 NO_MATCH_CAP = 10
@@ -44,7 +53,7 @@ def score_job(job, cfg):
     loc_bonus = 0
     oks = [norm(x) for x in cfg.get("locations_ok", [])]
     if any(o and o in loc for o in oks) or "remoto" in loc or "remoto" in desc:
-        loc_bonus = 10
+        loc_bonus = LOC_BONUS
 
     rec_bonus = experience_adjust(title, desc)
     age = _age_points(job.get("posted"))
@@ -56,7 +65,7 @@ def score_job(job, cfg):
     if comp and any(norm(e.get("name")) and norm(e["name"]) in comp for e in cfg.get("empresas", [])):
         comp_bonus = cfg.get("company_bonus", 10)
 
-    score = max(0, min(100, round(base * 0.82 + loc_bonus + rec_bonus + comp_bonus + pen)))
+    score = max(0, min(100, round(base * PERFIL_MAX / 100 + loc_bonus + rec_bonus + comp_bonus + pen)))
     if base == 0:  # no nombra nada de lo que buscás: nunca debería verse como buena opción
         score = min(score, NO_MATCH_CAP)
     return score, best_cv, {k: round(v) for k, v in per_cv.items()}
@@ -99,7 +108,7 @@ def _age_points(posted):
     except ValueError:
         return None
     days = (datetime.now(timezone.utc) - d).days
-    pts = 8 if days <= 3 else 4 if days <= 10 else 0 if days <= 21 else -8 if days <= 45 else -15
+    pts = AGE_PTS[0] if days <= 3 else AGE_PTS[1] if days <= 10 else AGE_PTS[2] if days <= 21 else AGE_PTS[3] if days <= 45 else AGE_PTS[4]
     return days, pts
 
 
@@ -111,7 +120,7 @@ def explain(job, cfg):
     score, best_cv, _ = score_job(job, cfg)
     prof = cfg["profiles"][best_cv]
     hits = [k for k in prof["keywords"] if norm(k) in title or norm(k) in desc]
-    base = round(_profile_score(prof, title, desc) * 0.82)
+    base = round(_profile_score(prof, title, desc) * PERFIL_MAX / 100)
     items = []
     if hits:
         items.append({"label": f"Coincide con {prof.get('label', best_cv)}: " + ", ".join(hits[:6]), "points": base})
@@ -119,7 +128,7 @@ def explain(job, cfg):
         items.append({"label": f"Casi no coincide con las palabras de {prof.get('label', best_cv)}", "points": base})
     oks = [norm(x) for x in cfg.get("locations_ok", [])]
     if any(o and o in loc for o in oks) or "remoto" in loc or "remoto" in desc:
-        items.append({"label": "Lugar que te sirve o remoto", "points": 10})
+        items.append({"label": "Lugar que te sirve o remoto", "points": LOC_BONUS})
     comp = norm(job.get("company"))
     if comp and any(norm(e.get("name")) and norm(e["name"]) in comp for e in cfg.get("empresas", [])):
         items.append({"label": "Es una de tus empresas de interés", "points": cfg.get("company_bonus", 10)})

@@ -47,7 +47,7 @@ Abrí http://127.0.0.1:8000, creá tu cuenta y seguí el asistente.
 
 ## Cómo se calcula el puntaje
 
-Cada rubro tiene palabras con peso (por ejemplo «tablerista» pesa más que «mantenimiento»). Se suma la mejor coincidencia de tus perfiles, y después: +10 si la zona coincide, bonus por empresas que seguís, penalización por requisitos que no cumplís y ajuste por antigüedad. Si ninguna palabra de tu rubro aparece, el puntaje se limita a 10. La pantalla muestra «Relevantes» por defecto y cada oferta explica de dónde sale su puntaje.
+Cada rubro tiene palabras con peso (por ejemplo «tablerista» pesa más que «mantenimiento»; si aparece en el título vale el doble). Las palabras suman con una **curva suave**: las primeras coincidencias suben rápido, pero llegar al máximo exige acertar con casi todas, así que dos ofertas parecidas no quedan empatadas en 100. Después se ajusta: +8 si la zona coincide, hasta +6 si es reciente (y resta si es vieja), bonus por empresas que seguís, ajuste por la experiencia que pide y penalización por requisitos que no cumplís. Si ninguna palabra de tu rubro aparece, el puntaje se limita a 10. La pantalla muestra «Relevantes» por defecto y cada oferta explica de dónde sale su puntaje. Si se cambia la fórmula, los puntajes guardados se recalculan solos al reiniciar.
 
 ## Cómo está hecho
 

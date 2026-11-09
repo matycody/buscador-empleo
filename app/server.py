@@ -436,6 +436,9 @@ def run(host="127.0.0.1", port=8000):
                 db.conn().close()
                 if db.clean_descriptions():
                     db.recalc()
+                if search.load_state().get("score_v") != scoring.VERSION:
+                    db.recalc()  # cambió la fórmula del puntaje: se recalculan las ofertas ya guardadas
+                    search._save_state(score_v=scoring.VERSION)
         except Exception as e:  # la limpieza nunca debe impedir que arranque
             print("No se pudo preparar una cuenta:", e)
     cache.limpiar()
@@ -446,7 +449,8 @@ def run(host="127.0.0.1", port=8000):
     print(f"Buscador de empleo listo en http://{host}:{port}  (Ctrl+C para cortar)")
     def _apagar(signum, frame):
         # Los hostings mandan SIGTERM al reiniciar o desplegar: hay unos segundos para guardar la copia final.
-        print("\nSeñal de apagado: guardando copia final…")
+        if backup.enabled():
+            print("\nSeñal de apagado: guardando copia final…")
         stop.set()
         backup.cerrar()
         os._exit(0)
