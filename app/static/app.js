@@ -647,6 +647,8 @@ function openConfig() {
   const av = c.avisos || {};
   $("cAvScore").value = av.puntaje || 80;
   $("cAvDays").value = av.seguimiento_dias || 7;
+  $("avMailRow").hidden = !state.mail;
+  $("cAvMail").checked = !!av.mail;
   const post = c.postulacion || {};
   $("cPName").value = post.nombre || "";
   $("cPPhone").value = post.telefono || "";
@@ -728,7 +730,7 @@ async function saveConfig(ev) {
   document.querySelectorAll("[data-profile]").forEach((ta) => {
     cfg.profiles[ta.dataset.profile].keywords = linesToObj(ta.value);
   });
-  cfg.avisos = { puntaje: Math.min(100, Math.max(30, Number($("cAvScore").value) || 80)), seguimiento_dias: Math.min(60, Math.max(1, Number($("cAvDays").value) || 7)) };
+  cfg.avisos = { puntaje: Math.min(100, Math.max(30, Number($("cAvScore").value) || 80)), seguimiento_dias: Math.min(60, Math.max(1, Number($("cAvDays").value) || 7)), mail: $("cAvMail").checked };
   cfg.auto = { enabled: $("cAutoOn").checked, every_hours: Math.min(48, Math.max(1, Number($("cAutoH").value) || 6)) };
   cfg.postulacion = { ...(cfg.postulacion || {}), nombre: $("cPName").value.trim(), telefono: $("cPPhone").value.trim(), plantillas: { ...((cfg.postulacion || {}).plantillas || {}) } };
   document.querySelectorAll("[data-tpl]").forEach((ta) => { cfg.postulacion.plantillas[ta.dataset.tpl] = ta.value; });
@@ -1013,6 +1015,7 @@ async function init() {
   }
   if (!me.user) { state.mail = !!me.mail; showAuth(me.primera); return; }
   state.user = me.user;
+  state.mail = !!me.mail;
   if (location.pathname === "/entrar") history.replaceState(null, "", "/");
   $("auth").hidden = true;
   $("accName").textContent = (me.user.nombre || me.user.email).split(" ")[0];
@@ -1132,6 +1135,12 @@ async function logout() {
   location.reload();
 }
 document.querySelectorAll("[data-auth]").forEach((b) => b.addEventListener("click", () => setAuthMode(b.dataset.auth)));
+$("btnDigestTest").addEventListener("click", async () => {
+  try {
+    const r = await api("/api/digest/test", "POST", {});
+    toast(r.enviadas ? `Te mandamos un correo con ${r.enviadas} oferta${r.enviadas === 1 ? "" : "s"}.` : "No hay ofertas con ese puntaje para mandarte todavía. Buscá ofertas primero o bajá el puntaje.");
+  } catch (e) { toast(e.message); }
+});
 $("formAuth").addEventListener("submit", submitAuth);
 $("auForgot").addEventListener("click", (e) => { e.preventDefault(); setAuthMode("forgot"); });
 $("auBack").addEventListener("click", (e) => { e.preventDefault(); setAuthMode("login"); });

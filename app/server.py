@@ -118,7 +118,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path)
-        if not self._begin(public=("/api/me", "/verify")):
+        if not self._begin(public=("/api/me", "/verify", "/baja")):
             return
         if u.path == "/verify":
             try:
@@ -130,6 +130,13 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Location", destino)
             self.send_header("Content-Length", "0")
             return self.end_headers()
+        if u.path == "/baja":
+            q = parse_qs(u.query)
+            uid, sig = q.get("u", [""])[0], q.get("s", [""])[0]
+            from . import digest
+            ok = users.check_sign("baja", uid, sig) and digest.unsubscribe(uid)
+            msg = "Listo: no vas a recibir más el resumen de ofertas. Podés volver a activarlo en Configuración." if ok else "El link no es válido."
+            return self._text(f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:sans-serif;max-width:460px;margin:60px auto;padding:0 20px"><h2>Resumen de ofertas</h2><p>{msg}</p><p><a href="/">Ir al buscador</a></p></body>', "text/html")
         if u.path == "/api/me":
             return self._json({"user": self.user, "primera": not users.has_users(), "mail": mailer.enabled()})
         if u.path == "/api/cv":
@@ -290,6 +297,13 @@ class Handler(BaseHTTPRequestHandler):
             except config.SecretError as e:
                 return self._json({"error": str(e)}, 400)
             return self._json({salida: bool(config.get_secret(nombre))})
+        if u.path == "/api/digest/test":
+            from . import digest
+            if not mailer.enabled():
+                return self._json({"error": "Este servidor no envía correos."}, 400)
+            if not _limite(("digest", self.user["id"]), 3, 3600):
+                return self._json({"error": "Ya pediste varios correos de prueba. Probá en un rato."}, 429)
+            return self._json({"enviadas": digest.send_now(force=True)})
         if u.path == "/api/recalc":
             return self._json(db.recalc())
         if u.path == "/api/clear":

@@ -258,3 +258,37 @@ def reset_with_token(token, new):
             u["verified"] = True  # llegó al link por su correo: queda confirmado
         _write(USERS_PATH, users)
         _drop_sessions(uid)
+
+
+# ---------- clave del servidor (para links firmados, como la baja de avisos) ----------
+def _server_key():
+    path = os.path.join(ROOT, "server.key")
+    try:
+        with open(path, encoding="utf-8") as f:
+            key = f.read().strip()
+            if key:
+                return key
+    except OSError:
+        pass
+    key = secrets.token_hex(32)
+    os.makedirs(ROOT, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(key)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+    return key
+
+
+def sign(purpose, uid):
+    return hmac.new(_server_key().encode(), f"{purpose}:{uid}".encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def check_sign(purpose, uid, sig):
+    return hmac.compare_digest(sign(purpose, uid), str(sig or ""))
+
+
+def find_by_id(uid):
+    u = next((x for x in _read(USERS_PATH, []) if x["id"] == uid), None)
+    return dict(u) if u else None

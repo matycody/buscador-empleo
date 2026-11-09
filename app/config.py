@@ -37,7 +37,7 @@ DEFAULT = {
     "empresas": [],
     "company_bonus": 10,
     "auto": {"enabled": False, "every_hours": 6},
-    "avisos": {"puntaje": 80, "seguimiento_dias": 7},
+    "avisos": {"puntaje": 80, "seguimiento_dias": 7, "mail": False},
     "postulacion": {
         "nombre": "",
         "telefono": "",

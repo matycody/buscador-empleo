@@ -392,6 +392,11 @@
             <div class="field"><label for="cAvScore">Avisarme de ofertas nuevas con puntaje desde</label><input class="input" id="cAvScore" type="number" min="30" max="100"></div>
             <div class="field"><label for="cAvDays">Recordarme hacer seguimiento a los (días)</label><input class="input" id="cAvDays" type="number" min="1" max="60"></div>
           </div>
+          <div class="st-card" id="avMailRow" hidden>
+            <div><label class="switch-row"><span class="switch"><input type="checkbox" id="cAvMail"><span class="sw"></span></span> <b>Resumen diario por mail</b></label>
+              <p class="hint">Una vez por día, a la mañana, te mandamos las ofertas nuevas con el puntaje de arriba o más. Si no hay ninguna, no te escribimos. Con esto activado el servidor busca por vos aunque no tengas la página abierta.</p></div>
+            <button type="button" class="btn" id="btnDigestTest">Enviarme uno de prueba</button>
+          </div>
         </section>
 
         <section class="st-pane" data-pane="datos" hidden>

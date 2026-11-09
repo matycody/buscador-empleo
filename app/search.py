@@ -159,11 +159,15 @@ def scheduler_loop(stop):
         for folder in users.all_dirs():
             try:
                 with ctx.using(folder):
-                    auto = config.load().get("auto", {})
-                    if not auto.get("enabled"):
-                        continue
-                    every = max(1, float(auto.get("every_hours", 6))) * 3600
-                    if time.time() - load_state().get("last_search", 0) >= every:
-                        run_search()
+                    cfg = config.load()
+                    auto = cfg.get("auto", {})
+                    con_resumen = bool((cfg.get("avisos") or {}).get("mail"))  # el resumen por mail necesita búsquedas frescas
+                    if auto.get("enabled") or con_resumen:
+                        every = max(1, float(auto.get("every_hours", 6) if auto.get("enabled") else 12)) * 3600
+                        if time.time() - load_state().get("last_search", 0) >= every:
+                            run_search()
+                    if con_resumen:
+                        from . import digest
+                        digest.maybe_send()
             except Exception as e:  # el planificador nunca debe caerse
                 print("Búsqueda automática falló:", e)
