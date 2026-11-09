@@ -55,6 +55,14 @@ class Cuentas(base.TempData):
         self.assertNotIn("e@mail.com", str(st))
 
 
+try:
+    import cryptography  # noqa: F401
+    HAY_CRYPTO = True
+except ImportError:
+    HAY_CRYPTO = False
+
+
+@unittest.skipUnless(HAY_CRYPTO, "falta instalar cryptography (pip install -r requirements.txt)")
 class Secretos(base.TempData):
     def test_cifrado_ida_y_vuelta(self):
         os.environ["BL_SECRET_KEY"] = "clave-maestra-de-prueba"
@@ -82,6 +90,8 @@ class Secretos(base.TempData):
         with ctx.using(a):
             self.assertEqual(config.get_secret("gmail"), "")
 
+
+class SecretosSinClave(base.TempData):
     def test_modo_publico_sin_clave_no_guarda(self):
         os.environ["BL_PUBLIC"] = "1"
         d = os.path.join(self.tmp, "users", "u")
