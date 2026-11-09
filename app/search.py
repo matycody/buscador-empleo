@@ -4,9 +4,10 @@ import os
 import threading
 import time
 
-from . import config, countries, ctx, db
+from . import cache, config, countries, ctx, db
 from .sources import amia, bumeran, buscojobs, companies, computrabajo, gmail, jooble, linkedin, portalempleo, remoto, rss, talent, zonajobs
 
+USAN_ZONAS = {"bumeran", "zonajobs", "buscojobs", "portalempleo", "amia"}  # los demás portales ignoran las zonas
 _locks = {}
 _guard = threading.Lock()
 
@@ -42,8 +43,9 @@ def enrich_computrabajo(conf, pause=1.0):
         return {"leidos": 0, "fallos": 0}
     ok = bad = 0
     for item in db.pending_descriptions("Computrabajo", limit=int(conf.get("max_details", 25))):
+        real = True
         try:
-            text = computrabajo.fetch_detail(item["url"])
+            text, real = cache.detalle(item["url"], computrabajo.fetch_detail)
             if text:
                 db.set_description(item["id"], text)
                 ok += 1
@@ -51,7 +53,8 @@ def enrich_computrabajo(conf, pause=1.0):
             bad += 1
             if bad >= 3:  # si falla seguido, mejor frenar que insistir
                 break
-        time.sleep(pause)
+        if real:
+            time.sleep(pause)
     return {"leidos": ok, "fallos": bad}
 
 
@@ -89,6 +92,7 @@ def run_search():
             candidatos += [("ZonaJobs", "zonajobs", zonajobs.fetch), ("BuscoJobs", "buscojobs", buscojobs.fetch), ("Talent", "talent", talent.fetch),
                            ("PortalEmpleo", "portalempleo", portalempleo.fetch), ("AMIA", "amia", amia.fetch)]
         candidatos += [("Jooble", "jooble", jooble.fetch), ("Remoto", "remoto", remoto.fetch), ("LinkedIn", "linkedin", linkedin.fetch)]
+        modos = {"amia": "sin_consulta", "remoto": "conjunto"}  # el resto se pide puesto por puesto
         activos = [(name, key, fn) for name, key, fn in candidatos
                    if portales.get(key, {}).get("enabled") and busquedas
                    and (key != "jooble" or config.get_secret("jooble_key", "JOOBLE_API_KEY"))]
@@ -109,7 +113,9 @@ def run_search():
         pjobs, preport = [], []
         for name, key, fn in activos:
             _step(name, "corriendo")
-            got, rep = fn({**portales[key], "queries": busquedas, "zonas": (cfg.get("perfil") or {}).get("zonas") or []})
+            got, rep, _ = cache.fetch(f"{key}:{pais['computrabajo']}", fn,
+                                      {**portales[key], "queries": busquedas, **({"zonas": (cfg.get("perfil") or {}).get("zonas") or []} if key in USAN_ZONAS else {})},
+                                      modos.get(key, "por_consulta"))
             pjobs += got
             PROGRESS["encontradas"] += len(got)
             preport += [{**r, "portal": name} for r in rep]
@@ -145,7 +151,11 @@ def run_search():
 def scheduler_loop(stop):
     """Cada minuto mira, cuenta por cuenta, si toca buscar según Configuración → Búsqueda automática."""
     from . import users
+    ticks = 0
     while not stop.wait(60):
+        ticks += 1
+        if ticks % 60 == 1:  # una vez por hora
+            cache.limpiar()
         for folder in users.all_dirs():
             try:
                 with ctx.using(folder):

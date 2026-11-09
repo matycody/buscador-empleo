@@ -8,7 +8,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from . import config, ctx, cvparse, db, mailer, presets, scoring, search, users
+from . import cache, config, ctx, cvparse, db, mailer, presets, scoring, search, users
 from .sources import demo
 
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
@@ -353,6 +353,7 @@ def run(host="127.0.0.1", port=8000):
                     db.recalc()
         except Exception as e:  # la limpieza nunca debe impedir que arranque
             print("No se pudo preparar una cuenta:", e)
+    cache.limpiar()
     stop = threading.Event()
     threading.Thread(target=search.scheduler_loop, args=(stop,), daemon=True).start()
     srv = ThreadingHTTPServer((host, port), Handler)
