@@ -21,6 +21,7 @@ Funciona para **cualquier rubro** (electricidad, salud, ventas, programación, g
 - **Puntaje 0-100** por oferta: coincidencia de palabras con tu rubro, zona, empresa, experiencia pedida y antigüedad. Las ofertas que no tienen nada que ver con tu perfil quedan abajo.
 - **Recomienda un CV** (podés tener uno por rubro) y lee tu CV para sugerir palabras y puestos.
 - **Postulación asistida**: abre la oferta en una ventana lateral y te deja el mensaje listo para copiar.
+- **Modo claro y oscuro**: sigue al sistema y se cambia con un botón; recuerda tu elección.
 - **Seguimiento**: estado de cada postulación, resultado, fecha de seguimiento y exportación a CSV.
 - **Resumen diario por mail** (opcional) con las ofertas nuevas que superan tu puntaje, y baja con un click.
 - **Tus datos son tuyos**: desde «Mi cuenta» descargás un .zip con tu perfil, ofertas y CV.

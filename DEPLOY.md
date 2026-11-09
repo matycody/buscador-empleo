@@ -88,7 +88,7 @@ Un VPS chico con Docker y un dominio apuntando a su IP. En `docker-compose.yml` 
 - [x] **Repositorio limpio**: el proyecto se publica desde `buscador-empleo` (ver abajo).
 
 ## Tests
-`python -m unittest discover -s tests -t .` (34 pruebas de lectores, puntaje, cuentas, cifrado, caché y copia de seguridad). GitHub Actions los corre en cada push (`.github/workflows/tests.yml`). Los lectores de portales se prueban con HTML de ejemplo, no con los sitios reales: si un portal cambia su página, el panel `/admin` lo muestra.
+`python -m unittest discover -s tests -t .` (38 pruebas de lectores, puntaje, cuentas, cifrado, caché, copia de seguridad y modo oscuro). GitHub Actions los corre en cada push (`.github/workflows/tests.yml`). Los lectores de portales se prueban con HTML de ejemplo, no con los sitios reales: si un portal cambia su página, el panel `/admin` lo muestra.
 
 ## Repositorio limpio
 El repositorio original (`BusquedaLaboral`) tiene en su historial datos personales del autor y es público. El proyecto se publica desde un repositorio nuevo con historial propio (`buscador-empleo`). Regla para no repetirlo: **nunca** subir `data/`, CVs, capturas con datos reales ni claves; `.gitignore` ya excluye `data/`, `*.db`, `.env` y `cvs/`. Para las capturas del README usá siempre cuentas de ejemplo.
