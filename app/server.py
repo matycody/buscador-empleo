@@ -14,6 +14,9 @@ from .sources import demo
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 
+# Solo se ejecuta JavaScript propio (nada inline ni de otros sitios); los estilos inline sí se permiten.
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+       "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
 LEGAL_VERSION = "2026-11"                        # subila cuando cambien los términos o la privacidad
 LEGAL_FECHA = "9 de noviembre de 2026"
 PUBLIC = os.environ.get("BL_PUBLIC") == "1"      # servidor abierto a internet (detrás de HTTPS)
@@ -51,6 +54,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
+        self.send_header("Content-Security-Policy", CSP)
         if PUBLIC:
             self.send_header("Strict-Transport-Security", "max-age=31536000")
         super().end_headers()
@@ -242,7 +246,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             rel = u.path.lstrip("/")
         full = os.path.normpath(os.path.join(STATIC, rel))
-        if not full.startswith(STATIC) or not os.path.isfile(full):
+        if not full.startswith(STATIC + os.sep) or not os.path.isfile(full):
             self.send_error(404)
             return
         with open(full, "rb") as f:
@@ -278,6 +282,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Las cuentas nuevas se crean desde la computadora donde corre el programa."}, 403)
             if PUBLIC and not _registro_permitido(ip):
                 return self._json({"error": "Demasiados registros desde tu conexión. Probá más tarde."}, 429)
+        if u.path == "/api/login" and (not _limite(("login-ip", self._ip()), 30, 600)
+                                       or not _limite(("login-mail", str(body.get("email", "")).strip().lower()), 10, 600)):
+            return self._json({"error": "Demasiados intentos. Esperá unos minutos y probá de nuevo."}, 429)
         if u.path in ("/api/register", "/api/login"):
             try:
                 if u.path == "/api/register":
@@ -326,6 +333,9 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/demo":
             return self._json(db.upsert_jobs(demo.fetch()))
         if u.path == "/api/search":
+            tope = int(os.environ.get("BL_MAX_BUSQUEDAS_HORA", 6)) if PUBLIC else 0
+            if tope and not _limite(("busqueda", ctx.data_dir()), tope, 3600):
+                return self._json({"error": f"Hiciste muchas búsquedas seguidas (máximo {tope} por hora). Se actualizan solas: probá en un rato."}, 429)
             res = search.run_search()
             return self._json(res if res is not None else {"agregadas": 0, "aviso": "Ya hay una búsqueda en curso. Esperá a que termine."})
         if u.path in ("/api/jooble/key", "/api/gmail/password"):
