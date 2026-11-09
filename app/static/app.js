@@ -30,12 +30,26 @@ async function api(path, method = "GET", body) {
 }
 
 let toastTimer;
-function toast(text) {
+function toast(text, tipo) {
   const t = $("toast");
-  t.textContent = text;
+  const partes = (Array.isArray(text) ? text : [text]).map(String).filter(Boolean);
+  const todo = partes.join(" ");
+  tipo = tipo || (/no se pudo|falló|error|no pude|incorrect|inválid|no parece|escrib[ií]|elegí al menos/i.test(todo) ? "error" : "ok");
+  t.className = "toast " + tipo;
+  t.replaceChildren();
+  const ico = document.createElement("span");
+  ico.className = "toast-ico"; ico.setAttribute("aria-hidden", "true");
+  ico.textContent = tipo === "error" ? "!" : "✓";
+  const box = document.createElement("div");
+  box.className = "toast-msgs";
+  for (const p of partes) { const e = document.createElement("p"); e.textContent = p; box.appendChild(e); }
+  const x = document.createElement("button");
+  x.type = "button"; x.className = "toast-x"; x.setAttribute("aria-label", "Cerrar aviso"); x.textContent = "×";
+  x.addEventListener("click", () => { t.hidden = true; clearTimeout(toastTimer); });
+  t.append(ico, box, x);
   t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), Math.min(15000, Math.max(4000, text.length * 70)));
+  toastTimer = setTimeout(() => (t.hidden = true), Math.min(15000, Math.max(4000, todo.length * 70)));
 }
 
 function ago(iso) {
@@ -1275,7 +1289,7 @@ async function saveSetup(ev) {
     state.cfg = await api("/api/config");
     renderCvFilter();
     await loadJobs();
-    toast(cvMsgs.length ? cvMsgs.join(" ") : "Perfil guardado. Apretá Buscar ofertas para traer los primeros avisos.");
+    toast(cvMsgs.length ? cvMsgs : "Perfil guardado. Apretá Buscar ofertas para traer los primeros avisos.");
   } catch (e) { toast("No se pudo guardar: " + e.message); }
 }
 $("formSetup").addEventListener("submit", saveSetup);
