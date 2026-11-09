@@ -37,13 +37,18 @@ _conjunto = set()  # archivos que había en la última pasada (para avisar solo 
 
 
 # ---------- configuración ----------
+def _con_https(ep):
+    ep = ep.strip().rstrip("/")
+    return ep if ep.startswith(("http://", "https://")) else "https://" + ep
+
+
 def _cfg():
     e = os.environ
     campos = ("BL_BACKUP_ENDPOINT", "BL_BACKUP_BUCKET", "BL_BACKUP_KEY_ID", "BL_BACKUP_SECRET")
     if not all(e.get(c) for c in campos):
         return None
     return {
-        "endpoint": e["BL_BACKUP_ENDPOINT"].rstrip("/"), "bucket": e["BL_BACKUP_BUCKET"],
+        "endpoint": _con_https(e["BL_BACKUP_ENDPOINT"]), "bucket": e["BL_BACKUP_BUCKET"],
         "key_id": e["BL_BACKUP_KEY_ID"], "secret": e["BL_BACKUP_SECRET"],
         "region": e.get("BL_BACKUP_REGION", "auto"), "prefix": e.get("BL_BACKUP_PREFIX", "buscador").strip("/"),
     }
@@ -94,8 +99,15 @@ def _pedir(c, method, key="", query=None, body=b"", timeout=60):
     h["Authorization"] = firmar(method, path, query, {k: v for k, v in h.items()}, ph, c["key_id"], c["secret"], c["region"])
     req = urllib.request.Request(url, data=body if method in ("PUT", "POST") else None, method=method,
                                  headers={k: v for k, v in h.items() if k != "host"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read()
+    except urllib.error.HTTPError as ex:
+        try:
+            detalle = ex.read().decode("utf-8", "replace")[:300]
+        except Exception:
+            detalle = ""
+        raise RuntimeError(f"HTTP {ex.code} en {method} {path}: {detalle}") from None
 
 
 # ---------- cifrado ----------
