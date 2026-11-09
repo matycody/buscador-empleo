@@ -1,0 +1,16 @@
+# Servidor con HTTPS automático (Caddy). Cambiá "empleo.tudominio.com" por tu dominio apuntado a este servidor.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    command: caddy reverse-proxy --from empleo.tudominio.com --to app:8000
+    volumes:
+      - caddy_data:/data
+volumes:
+  caddy_data:

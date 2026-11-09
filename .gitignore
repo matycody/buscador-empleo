@@ -1,0 +1,18 @@
+# Datos locales y personales (nunca subir)
+data/
+*.db
+.env
+*.key
+cvs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

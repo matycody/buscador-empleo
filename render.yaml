@@ -1,0 +1,27 @@
+# Despliegue en Render (https://render.com): New → Blueprint → elegí este repositorio.
+# Necesita un plan con disco persistente (no el gratuito): ahí se guardan cuentas, CVs y ofertas.
+services:
+  - type: web
+    name: buscador-empleo
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/me
+    disk:
+      name: datos
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: BL_PUBLIC
+        value: "1"
+      - key: BL_SECRET_KEY        # clave maestra para cifrar contraseñas de Gmail y claves de API; Render la genera sola
+        generateValue: true
+      - key: BL_BASE_URL          # la URL pública, ej: https://buscador-empleo.onrender.com (o tu dominio)
+        sync: false
+      - key: BL_OPERADOR          # quién publica el servicio (nombre o razón social), aparece en términos y privacidad
+        sync: false
+      - key: BL_CONTACTO          # correo de contacto para consultas y derechos sobre datos
+        sync: false
+      - key: BREVO_API_KEY        # clave de la API de Brevo
+        sync: false
+      - key: BREVO_SENDER_EMAIL   # remitente verificado en Brevo
+        sync: false
