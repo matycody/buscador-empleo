@@ -31,7 +31,6 @@
     </div>
     <div class="topbar-actions">
       <button class="btn btn-primary" id="btnSearch">Buscar ofertas</button>
-      <button class="btn" id="btnAdd" aria-label="Agregar oferta"><span class="lbl">Agregar oferta</span><span class="ico" aria-hidden="true">＋</span></button>
       <button class="btn" id="btnConfig" aria-label="Configuración"><span class="lbl">Configuración</span><span class="ico" aria-hidden="true">⚙</span></button>
       <button class="btn theme-btn" data-theme-toggle title="Pasar a modo oscuro" aria-label="Pasar a modo oscuro" aria-pressed="false"><span class="ico theme-ico" aria-hidden="true" style="display:inline">☾</span></button>
       <button class="btn btn-quiet" id="btnAccount" title="Mi cuenta" aria-label="Mi cuenta"><span class="lbl" id="accName">Mi cuenta</span><span class="ico" aria-hidden="true">☺</span></button>
@@ -90,29 +89,6 @@
   </main>
   <section class="pane-detail" id="detail" aria-label="Detalle de la oferta"></section>
 </div>
-
-<dialog id="dAdd">
-  <form method="dialog" id="formAdd">
-    <div class="dlg-head"><h2>Agregar oferta</h2></div>
-    <div class="dlg-body">
-      <p class="hint">Sirve para cualquier portal: copiá los datos del aviso y se puntúa igual que el resto.</p>
-      <div class="field"><label for="aTitle">Puesto</label><input class="input" id="aTitle" required></div>
-      <div class="cols-2">
-        <div class="field"><label for="aCompany">Empresa</label><input class="input" id="aCompany"></div>
-        <div class="field"><label for="aLocation">Lugar</label><input class="input" id="aLocation"></div>
-      </div>
-      <div class="field"><label for="aUrl">Link del aviso</label><input class="input" id="aUrl" type="url" placeholder="https://"></div>
-      <div class="field"><label for="aDesc">Descripción</label><textarea class="input" id="aDesc" rows="6" placeholder="Pegá acá el texto del aviso"></textarea></div>
-    </div>
-    <div class="dlg-foot">
-      <span></span>
-      <div class="group">
-        <button type="button" class="btn" data-close>Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar oferta</button>
-      </div>
-    </div>
-  </form>
-</dialog>
 
 <div id="auth" hidden>
   <div class="auth-card">

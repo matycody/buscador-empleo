@@ -595,7 +595,7 @@ dialog.settings .dlg-head .hint { margin: 0; }
 
 .btn .ico { display: none; }
 @media (max-width: 640px) {
-  .topbar-actions { display: grid !important; grid-template-columns: 1fr auto auto auto auto; gap: 8px; }
+  .topbar-actions { display: grid !important; grid-template-columns: 1fr auto auto auto; gap: 8px; }
   .topbar-actions .btn { flex: none; }
   .topbar-actions .lbl { display: none; }
   .topbar-actions .btn .ico { display: inline; font-size: 18px; line-height: 1; }

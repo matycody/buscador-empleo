@@ -261,10 +261,9 @@ function emptyState() {
   }
   if (state.tab === "activas" && !state.jobs.length) {
     return `<div class="empty"><h3>Todavía no hay ofertas</h3>
-      <p>Tocá Buscar ofertas, cargá las de ejemplo para ver cómo funciona o agregá un aviso a mano.</p>
+      <p>Tocá Buscar ofertas para traer los avisos de todos los portales, o cargá las de ejemplo para ver cómo funciona.</p>
       <div class="row">
         <button class="btn btn-primary" data-act="demo">Cargar ofertas de ejemplo</button>
-        <button class="btn" data-act="add">Agregar oferta</button>
         <button class="btn" data-act="config">Configurar fuentes</button>
       </div></div>`;
   }
@@ -769,28 +768,6 @@ async function saveConfig(ev) {
   }
 }
 
-async function saveOffer(ev) {
-  ev.preventDefault();
-  const body = {
-    title: $("aTitle").value.trim(),
-    company: $("aCompany").value.trim(),
-    location: $("aLocation").value.trim(),
-    description: $("aDesc").value.trim(),
-    posted: new Date().toISOString(),
-    source: "Manual",
-    url: $("aUrl").value.trim(),
-  };
-  if (!body.title) return;
-  try {
-    const r = await api("/api/jobs", "POST", body);
-    $("dAdd").close();
-    toast(r.agregadas ? "Oferta guardada." : "Esa oferta ya estaba cargada.");
-    await loadJobs();
-  } catch (e) {
-    toast("No se pudo guardar: " + e.message);
-  }
-}
-
 function clearFilters() {
   $("fQ").value = "";
   $("fLoc").value = "";
@@ -835,12 +812,7 @@ function bind() {
     $("btnFilters").setAttribute("aria-expanded", String(!hidden));
   });
   $("btnSearch").addEventListener("click", doSearch);
-  $("btnAdd").addEventListener("click", () => {
-    $("formAdd").reset();
-    openDialog($("dAdd"));
-  });
   $("btnConfig").addEventListener("click", openConfig);
-  $("formAdd").addEventListener("submit", saveOffer);
   $("pCopy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("pBody").value); toast("Mensaje copiado."); }
     catch (e) { $("pBody").select(); toast("Seleccioné el texto: copialo con Ctrl+C."); }
@@ -927,9 +899,6 @@ function bind() {
       }
       case "demo":
         loadDemo();
-        break;
-      case "add":
-        $("btnAdd").click();
         break;
       case "config":
         openConfig();
