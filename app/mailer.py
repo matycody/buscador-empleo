@@ -8,9 +8,16 @@ Si no están, el programa funciona igual pero sin verificación de correo ni rec
 """
 import json
 import os
+import urllib.error
 import urllib.request
 
 API = "https://api.brevo.com/v3/smtp/email"
+_estado = {"ok": None, "error": ""}
+
+
+def estado():
+    """Resultado del último envío: lo muestra el panel /admin para encontrar fallas de Brevo."""
+    return dict(_estado)
 
 
 def enabled():
@@ -29,8 +36,19 @@ def send(to, subject, html, text=""):
         "api-key": os.environ["BREVO_API_KEY"], "Content-Type": "application/json", "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
-            return 200 <= r.status < 300
+            ok = 200 <= r.status < 300
+            _estado.update(ok=ok, error="" if ok else f"HTTP {r.status}")
+            return ok
+    except urllib.error.HTTPError as e:
+        try:
+            detalle = e.read().decode("utf-8", "replace")[:300]
+        except Exception:
+            detalle = ""
+        _estado.update(ok=False, error=f"HTTP {e.code}: {detalle}")
+        print("No se pudo enviar el correo:", _estado["error"])
+        return False
     except Exception as e:
+        _estado.update(ok=False, error=f"{type(e).__name__}: {e}"[:300])
         print("No se pudo enviar el correo:", e)
         return False
 

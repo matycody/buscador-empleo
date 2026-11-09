@@ -154,7 +154,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._text(f.read(), "text/html")
             from . import health
             return self._json({"cuentas": users.stats(), "cache": cache.stats(), "portales": health.snapshot(),
-                               "publico": PUBLIC, "mail": mailer.enabled(), "admins": len(health.admins()), "backup": backup.estado()})
+                               "publico": PUBLIC, "mail": mailer.enabled(), "mail_estado": mailer.estado(), "admins": len(health.admins()), "backup": backup.estado()})
         if u.path == "/api/me":
             return self._json({"user": self.user, "primera": not users.has_users(), "mail": mailer.enabled()})
         if u.path == "/api/cv":
