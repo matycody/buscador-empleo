@@ -119,3 +119,17 @@ def limpiar():
         except OSError:
             pass
     return n
+
+
+def stats():
+    """Cuántas búsquedas y detalles hay guardados y cuánto pesan."""
+    out = {}
+    for nombre, sub in (("busquedas", ""), ("detalles", "detalles")):
+        d = _dir(sub)
+        try:
+            files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".json")]
+        except OSError:
+            files = []
+        out[nombre] = {"archivos": len(files), "kb": round(sum(os.path.getsize(f) for f in files) / 1024)}
+    out["ttl_min"] = ttl_min()
+    return out

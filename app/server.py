@@ -77,6 +77,10 @@ class Handler(BaseHTTPRequestHandler):
         token = users.make_token(user["id"], "verify", 48)
         return mailer.send_verify(user["email"], user.get("nombre", ""), f"{self._base_url()}/verify?token={token}")
 
+    def _es_admin(self):
+        from . import health
+        return bool(self.user) and self.user["email"].lower() in health.admins()
+
     def _ip(self):
         """IP real del cliente (detrás de un proxy HTTPS se lee X-Forwarded-For, solo en modo público)."""
         if PUBLIC:
@@ -89,9 +93,9 @@ class Handler(BaseHTTPRequestHandler):
         age = days * 86400 if token else 0
         return f"sid={token or ''}; HttpOnly; SameSite=Lax; Path=/; Max-Age={age}" + ("; Secure" if PUBLIC else "")
 
-    def _text(self, body, ctype="text/plain"):
+    def _text(self, body, ctype="text/plain", code=200):
         data = body.encode("utf-8")
-        self.send_response(200)
+        self.send_response(code)
         self.send_header("Content-Type", ctype + "; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
@@ -137,6 +141,15 @@ class Handler(BaseHTTPRequestHandler):
             ok = users.check_sign("baja", uid, sig) and digest.unsubscribe(uid)
             msg = "Listo: no vas a recibir más el resumen de ofertas. Podés volver a activarlo en Configuración." if ok else "El link no es válido."
             return self._text(f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:sans-serif;max-width:460px;margin:60px auto;padding:0 20px"><h2>Resumen de ofertas</h2><p>{msg}</p><p><a href="/">Ir al buscador</a></p></body>', "text/html")
+        if u.path in ("/admin", "/api/admin/stats"):
+            if not self._es_admin():
+                return self._json({"error": "No autorizado"}, 403) if u.path.startswith("/api") else self._text("No autorizado", "text/plain", 403)
+            if u.path == "/admin":
+                with open(os.path.join(STATIC, "admin.html"), encoding="utf-8") as f:
+                    return self._text(f.read(), "text/html")
+            from . import health
+            return self._json({"cuentas": users.stats(), "cache": cache.stats(), "portales": health.snapshot(),
+                               "publico": PUBLIC, "mail": mailer.enabled(), "admins": len(health.admins())})
         if u.path == "/api/me":
             return self._json({"user": self.user, "primera": not users.has_users(), "mail": mailer.enabled()})
         if u.path == "/api/cv":

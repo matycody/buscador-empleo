@@ -292,3 +292,30 @@ def check_sign(purpose, uid, sig):
 def find_by_id(uid):
     u = next((x for x in _read(USERS_PATH, []) if x["id"] == uid), None)
     return dict(u) if u else None
+
+
+def stats():
+    """Números agregados de las cuentas (sin datos personales): total, verificadas, altas por día y actividad."""
+    import json as _json
+    lista = _read(USERS_PATH, [])
+    hoy = time.time()
+    altas, activos7, con_aviso, ofertas = {}, 0, 0, 0
+    for u in lista:
+        altas[u.get("created", "?")] = altas.get(u.get("created", "?"), 0) + 1
+        d = user_dir(u["id"])
+        try:
+            with open(os.path.join(d, "state.json"), encoding="utf-8") as f:
+                st = _json.load(f)
+            if hoy - st.get("last_search", 0) < 7 * 86400:
+                activos7 += 1
+        except (OSError, ValueError):
+            pass
+        try:
+            with open(os.path.join(d, "config.json"), encoding="utf-8") as f:
+                if (_json.load(f).get("avisos") or {}).get("mail"):
+                    con_aviso += 1
+        except (OSError, ValueError):
+            pass
+    ultimos = sorted(altas.items())[-14:]
+    return {"cuentas": len(lista), "verificadas": sum(1 for u in lista if u.get("verified") is not False),
+            "activas_7d": activos7, "con_resumen_diario": con_aviso, "altas_por_dia": ultimos}
